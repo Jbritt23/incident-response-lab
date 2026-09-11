@@ -1,20 +1,28 @@
 import json
 from pathlib import Path
 
-log_path = Path(__file__).parent / "data" / "sample_auth.json"
+def count_failed_logins(events):
+    failed_count = 0
 
-with log_path.open(encoding="utf-8") as file:
-    events = json.load(file)
+    for event in events:
+        if event["event"] == "login_failed":
+            failed_count += 1 
 
-print(f"Loaded {len(events)} events")
+    return failed_count
 
-for event in events:
-    print(f"{event['timestamp']} | {event['username']} | {event['event']}")
+def main():
+    log_path = Path(__file__).parent / "data" / "sample_auth.json"
 
-failed_count = 0 
+    with log_path.open(encoding="utf-8") as file:
+        events = json.load(file)
 
-for event in events:
-    if event["event"] == "login_failed":
-        failed_count += 1
+    print(f"Loaded {len(events)} events")
 
-print(f"Failed logins: {failed_count}")
+    for event in events:
+        print(f"{event['timestamp']} | {event['username']} | {event['event']}")
+
+    failed_count = count_failed_logins(events)
+    print(f"Failed logins: {failed_count}")
+
+if __name__ == "__main__":
+    main()
