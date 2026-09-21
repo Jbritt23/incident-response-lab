@@ -28,3 +28,12 @@ class TestAnalyzeAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"failed_logins": 0})
+
+    def test_missing_event_field(self):
+        client = TestClient(app)
+
+        events = [{"username": "alex"}]
+
+        response = client.post("/analyze", json=events)
+
+        self.assertEqual(response.status_code, 422)
