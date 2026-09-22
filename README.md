@@ -66,3 +66,27 @@ Expected response:
 
 Each record must contain an `event` field with a text value.
 A record missing that field receives a 422 validation response.
+
+## Run with Docker
+
+Start Docker Desktop, then run these commands from the repository folder.
+
+### Build the image
+
+```bash
+docker build -t incident-response-lab:local .
+```
+
+### Start the container
+
+```bash
+docker run --rm --name ir-lab -p 127.0.0.1:8000:8000 incident-response-lab:local
+```
+
+Open http://127.0.0.1:8000/docs to try the API.
+
+Press Control+C in the terminal to stop the container.
+The container is removed when it stops; the image remains.
+
+After changing application code or dependencies, rebuild the image
+and start a new container to use those changes.
