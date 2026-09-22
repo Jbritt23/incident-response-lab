@@ -90,3 +90,47 @@ The container is removed when it stops; the image remains.
 
 After changing application code or dependencies, rebuild the image
 and start a new container to use those changes.
+
+## Run with local Kubernetes
+
+Start Docker Desktop with its Kubernetes cluster enabled.
+These instructions use the local `docker-desktop` context.
+
+Build the image:
+
+```bash
+docker build -t incident-response-lab:local .
+```
+
+The deployment uses `imagePullPolicy: Never`, so the image must
+already be available to the Kubernetes node.
+
+Create or update the Deployment and Service:
+
+```bash
+kubectl --context docker-desktop apply -f k8s/
+```
+
+Check the Pods and Service:
+
+```bash
+kubectl --context docker-desktop get pods -l app=ir-api
+kubectl --context docker-desktop get service ir-api
+```
+
+Connect your Mac to an API Pod selected by the Service:
+
+```bash
+kubectl --context docker-desktop port-forward service/ir-api 8001:8000
+```
+
+Keep the terminal running and open http://127.0.0.1:8001/docs.
+
+Press Control+C to stop forwarding. The application keeps running
+in Kubernetes.
+
+To remove this application's Deployment and Service:
+
+```bash
+kubectl --context docker-desktop delete -f k8s/
+```
