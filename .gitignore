@@ -7,3 +7,10 @@ __pycache__/
 
 # Local environment variables and credentials
 .env
+
+# Terraform local working files and state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform/local/lab-note.txt

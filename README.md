@@ -307,3 +307,46 @@ Open http://127.0.0.1:8001/docs.
 
 Stopping either port-forward closes that tunnel; it does not stop
 Argo CD or the API.
+
+## Terraform local practice
+
+This exercise manages one local text file. It does not use AWS.
+
+From the repository root, initialize Terraform:
+
+```bash
+terraform -chdir=terraform/local init
+```
+
+Preview the changes:
+
+```bash
+terraform -chdir=terraform/local plan
+```
+
+Create the file after reviewing the plan and entering `yes`:
+
+```bash
+terraform -chdir=terraform/local apply
+```
+
+The generated file is `terraform/local/lab-note.txt`.
+
+Run plan again to confirm there are no changes:
+
+```bash
+terraform -chdir=terraform/local plan
+```
+
+Preview cleanup, then remove the managed file:
+
+```bash
+terraform -chdir=terraform/local plan -destroy
+terraform -chdir=terraform/local destroy
+```
+
+Review the destruction plan before entering `yes`.
+
+Commit the `.tf` configuration and `.terraform.lock.hcl`.
+Keep Terraform state, downloaded providers, and the generated
+text file out of Git.
