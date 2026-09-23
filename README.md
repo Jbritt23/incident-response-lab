@@ -194,3 +194,116 @@ files; update values.yaml separately to reflect the intended settings.
 ```bash
 helm uninstall ir-api --kube-context docker-desktop
 ```
+
+## Deploy with Argo CD locally
+
+The local lab now uses Argo CD to manage the API.
+Do not separately run Helm upgrades or apply the original `k8s/`
+files to the same application.
+
+### First-time Argo CD installation
+
+Create a namespace for Argo CD:
+
+```bash
+kubectl --context docker-desktop create namespace argocd
+```
+
+Install its components:
+
+```bash
+kubectl --context docker-desktop apply -n argocd --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+This URL follows Argo CD's stable branch; its contents can change.
+
+Check startup:
+
+```bash
+kubectl --context docker-desktop get pods -n argocd
+kubectl --context docker-desktop -n argocd rollout status deployment/argocd-server --timeout=120s
+```
+
+Use the dashboard port-forward command below to open Argo CD.
+The local dashboard may show a self-signed certificate warning.
+
+Log in as `admin`. Retrieve the initial password locally:
+
+```bash
+kubectl --context docker-desktop -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode; echo
+```
+
+Do not commit the password to Git.
+
+### One-time handoff from Helm
+
+Create the Argo CD Application using the settings below, with
+Manual sync. Before its first sync, remove the existing Helm
+release if it still manages this app:
+
+```bash
+helm uninstall ir-api --kube-context docker-desktop
+```
+
+This briefly removes the API Deployment and Service.
+Then sync the Application in Argo CD to recreate them.
+
+This handoff has already been completed in our local lab.
+
+### Application settings
+
+In Argo CD, create an Application with:
+
+- Name: `ir-api`
+- Project: `default`
+- Sync policy: Manual
+- Repository: `https://github.com/Jbritt23/incident-response-lab.git`
+- Revision: `main`
+- Path: `charts/ir-api`
+- Destination cluster: `https://kubernetes.default.svc`
+- Destination namespace: `default`
+
+Argo CD uses Helm to render the chart, then manages the generated
+Kubernetes resources. It does not create a Helm release.
+
+The local image must already be available to the Kubernetes node
+because the chart uses `imagePullPolicy: Never`.
+
+### Open the Argo CD dashboard
+
+With Docker Desktop and the local cluster running:
+
+```bash
+kubectl --context docker-desktop -n argocd port-forward service/argocd-server 8080:443
+```
+
+Open https://localhost:8080 and keep this terminal running.
+
+### Deploy a configuration change
+
+1. Create a Git branch and edit the chart settings.
+2. Commit, push, and merge a pull request into `main`.
+3. Refresh the Application in Argo CD.
+4. Review the difference, then select Sync and Synchronize.
+5. Confirm the Application is Synced and Healthy.
+6. Check the running resources:
+
+```bash
+kubectl --context docker-desktop get pods -l app=ir-api
+```
+
+Manual sync means merging a pull request does not automatically
+deploy it.
+
+### Access the API
+
+In a separate terminal:
+
+```bash
+kubectl --context docker-desktop port-forward service/ir-api 8001:8000
+```
+
+Open http://127.0.0.1:8001/docs.
+
+Stopping either port-forward closes that tunnel; it does not stop
+Argo CD or the API.
