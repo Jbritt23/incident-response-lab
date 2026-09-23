@@ -1,0 +1,9 @@
+replicaCount: 1
+
+image:
+  repository: incident-response-lab
+  tag: local
+  pullPolicy: Never
+
+service:
+  port: 8000

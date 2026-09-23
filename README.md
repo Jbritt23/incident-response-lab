@@ -134,3 +134,63 @@ To remove this application's Deployment and Service:
 ```bash
 kubectl --context docker-desktop delete -f k8s/
 ```
+
+## Run with Helm locally
+
+Start Docker Desktop and its Kubernetes cluster. Install Helm,
+then build the local image:
+
+```bash
+docker build -t incident-response-lab:local .
+```
+
+### First-time migration from the plain Kubernetes files
+
+If the Deployment and Service were previously created using `k8s/`,
+remove them before the first Helm installation. This briefly stops
+the local API:
+
+```bash
+kubectl --context docker-desktop delete -f k8s/ --ignore-not-found
+```
+
+Do not repeat this cleanup after Helm manages the application.
+Use the Helm chart instead of applying the original `k8s/` files.
+
+### Install or update
+
+```bash
+helm upgrade --install ir-api ./charts/ir-api --kube-context docker-desktop --wait --timeout 2m
+```
+
+Settings are in `charts/ir-api/values.yaml`.
+
+### Access the API
+
+```bash
+kubectl --context docker-desktop port-forward service/ir-api 8001:8000
+```
+
+Open http://127.0.0.1:8001/docs.
+Press Control+C to stop forwarding.
+
+### View history and roll back
+
+```bash
+helm history ir-api --kube-context docker-desktop
+```
+
+To restore revision 1, if it appears in the history:
+
+```bash
+helm rollback ir-api 1 --kube-context docker-desktop --wait --timeout 2m
+```
+
+Rollback creates a new release revision. It does not change local
+files; update values.yaml separately to reflect the intended settings.
+
+### Remove the Helm release
+
+```bash
+helm uninstall ir-api --kube-context docker-desktop
+```
