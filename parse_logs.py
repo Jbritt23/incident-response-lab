@@ -10,11 +10,20 @@ def count_failed_logins(events):
 
     return failed_count
 
+def load_events(log_path):
+    with log_path.open(encoding="utf-8") as file:
+        return json.load(file)
+
+def write_report(report, report_path):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with report_path.open("w", encoding="utf-8") as file:
+        json.dump(report, file, indent=2)
+
 def main():
     log_path = Path(__file__).parent / "data" / "sample_auth.json"
 
-    with log_path.open(encoding="utf-8") as file:
-        events = json.load(file)
+    events = load_events(log_path)
 
     print(f"Loaded {len(events)} events")
 
@@ -23,6 +32,15 @@ def main():
 
     failed_count = count_failed_logins(events)
     print(f"Failed logins: {failed_count}")
+
+    report = {
+        "total_events": len(events),
+        "failed_logins": failed_count,
+    }
+
+    report_path = Path(__file__).parent / "data" / "auth_report.json"
+    write_report(report, report_path)
+    print(f"Report saved to: {report_path}")
 
 if __name__ == "__main__":
     main()

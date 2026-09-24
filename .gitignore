@@ -14,3 +14,6 @@ __pycache__/
 *.tfstate.*
 *.tfplan
 terraform/local/lab-note.txt
+
+# Generated analysis report
+data/auth_report.json

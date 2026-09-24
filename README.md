@@ -350,3 +350,35 @@ Review the destruction plan before entering `yes`.
 Commit the `.tf` configuration and `.terraform.lock.hcl`.
 Keep Terraform state, downloaded providers, and the generated
 text file out of Git.
+
+## Generate a local log report
+
+With the virtual environment activated, run from the repository root:
+
+```bash
+python parse_logs.py
+```
+
+The program reads `data/sample_auth.json`, counts failed logins,
+prints the events, and saves a report to `data/auth_report.json`.
+
+For the sample data, the report contains:
+
+```json
+{
+  "total_events": 3,
+  "failed_logins": 2
+}
+```
+
+Each run replaces the previous report. The generated report is
+ignored by Git.
+
+Run the tests:
+
+```bash
+python -m unittest -v
+```
+
+Tests cover the counter, API behavior, reading a JSON file, and
+writing a report into a folder that does not yet exist.
