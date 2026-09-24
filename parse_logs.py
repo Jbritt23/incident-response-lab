@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 
 def count_failed_logins(events):
@@ -23,7 +24,19 @@ def write_report(report, report_path):
 def main():
     log_path = Path(__file__).parent / "data" / "sample_auth.json"
 
-    events = load_events(log_path)
+    try:
+        events = load_events(log_path)
+    except json.JSONDecodeError as error:
+        print(
+            f"Cannot read logs: invalid JSON at line "
+            f"{error.lineno}, column {error.colno}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    except FileNotFoundError:
+        print(f"Cannot read logs: file not found: {log_path}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Loaded {len(events)} events")
 

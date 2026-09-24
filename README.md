@@ -382,3 +382,13 @@ python -m unittest -v
 
 Tests cover the counter, API behavior, reading a JSON file, and
 writing a report into a folder that does not yet exist.
+
+### Input errors
+
+If the input file is missing or contains malformed JSON, the program
+prints an explanation to standard error and exits with code 1.
+
+It does not write a new report after either error. A report from an
+earlier successful run may still exist.
+
+These errors are not retried automatically.
