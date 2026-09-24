@@ -15,6 +15,8 @@ def load_events(log_path):
         return json.load(file)
 
 def write_report(report, report_path):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+
     with report_path.open("w", encoding="utf-8") as file:
         json.dump(report, file, indent=2)
 
