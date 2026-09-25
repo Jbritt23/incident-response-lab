@@ -392,3 +392,89 @@ It does not write a new report after either error. A report from an
 earlier successful run may still exist.
 
 These errors are not retried automatically.
+
+## n8n login-analysis workflow
+
+Import `workflows/login-analysis.json` into n8n.
+
+The workflow starts manually, sends sample login events to the API,
+and labels the result:
+
+- Two or more failures: `needs_review`
+- Fewer than two failures: `below_threshold`
+
+This threshold is for practice; it does not prove whether activity
+is malicious.
+
+### First-time local n8n setup
+
+Create persistent storage:
+
+```bash
+docker volume create ir-lab-n8n-data
+```
+
+Create and start the container:
+
+```bash
+docker run -d --name ir-lab-n8n -p 127.0.0.1:5678:5678 -e N8N_SECURE_COOKIE=false -v ir-lab-n8n-data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+```
+
+This setup binds the editor to the Mac's loopback address.
+The cookie setting supports this local HTTP lab in Safari.
+For a publicly hosted installation, use HTTPS and secure cookies.
+
+Open http://localhost:5678 and create a local owner account.
+Then create a workflow and use its menu to import
+`workflows/login-analysis.json` from a file.
+
+Keep passwords and license keys out of Git.
+The image tag is not pinned, so a fresh download may use a newer version.
+
+### Start the existing local n8n container
+
+With Docker Desktop running:
+
+```bash
+docker start ir-lab-n8n
+```
+
+Open http://localhost:5678.
+
+The Docker volume `ir-lab-n8n-data` preserves n8n's saved data.
+
+### Connect to the API
+
+With the API running in the local Kubernetes cluster, open a
+separate terminal and run:
+
+```bash
+kubectl --context docker-desktop port-forward service/ir-api 8001:8000
+```
+
+Keep that terminal running while executing the workflow.
+
+The HTTP Request node uses:
+`http://host.docker.internal:8001/analyze`
+
+Inside the n8n container, `host.docker.internal` reaches the Mac.
+`localhost` would refer to the n8n container itself.
+
+### Try both branches
+
+In the Analyze login events node, use two `login_failed` events
+and one `login_success` event. Execute the workflow and check
+that the result is labeled `needs_review`.
+
+Then try two `login_success` events. The result should be
+`below_threshold`.
+
+### Stop the local session
+
+Press Control+C in the port-forward terminal, then run:
+
+```bash
+docker stop ir-lab-n8n
+```
+
+Stopping the container preserves its saved data.
