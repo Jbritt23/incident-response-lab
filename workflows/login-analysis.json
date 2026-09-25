@@ -1,0 +1,170 @@
+{
+  "name": "IR Login Analysis",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bdbdcbca-4729-4602-973f-7adc179fa397",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8001/analyze",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "[\n  {\"event\": \"login_success\"},\n  {\"event\": \"login_success\"}\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0af7cc20-3e45-4814-a185-78da0bf11d80",
+      "name": "Analyze login events"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2bbbba7f-b1e1-4a6d-b594-ff09adfbfa42",
+              "leftValue": "={{ $json.failed_logins }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "20d13f36-779a-46e9-8a07-2f413e96ad29",
+      "name": "Two or more failures?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54e8b816-5b33-4720-a840-615a19e0b99d",
+              "name": "review_status",
+              "value": "needs_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "7940565e-e193-4e4a-ae45-4aa6a44fa14d",
+      "name": "Flag for review"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3b3ada0-b390-44ac-9363-52aaa7b89a4f",
+              "name": "review_status",
+              "value": "below_threshold",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        96
+      ],
+      "id": "88edff0d-7c5e-47b6-857b-470d17c2bdc3",
+      "name": "Below threshold"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Analyze login events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze login events": {
+      "main": [
+        [
+          {
+            "node": "Two or more failures?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Two or more failures?": {
+      "main": [
+        [
+          {
+            "node": "Flag for review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Below threshold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0ffa196d-c1ea-45f3-9bce-9cd345bd8456",
+  "meta": {
+    "instanceId": "ecf4f6795086fd18a1af7582ec8c942a8c325f5817b9f858b5821c6cfa2c8715"
+  },
+  "nodeGroups": [],
+  "id": "z0cceN16pGVoFiM8",
+  "tags": []
+}
